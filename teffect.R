@@ -68,8 +68,8 @@ teffect_ra <- function(formula, data, treatment.effect = "ATE", bootstrap_se = F
     bootstrap <- boot::boot(data = dat, statistic = bootstrap_statistic, R = iter)
     
     out$std.err <- as.numeric(summary(bootstrap)[4])
-    out$cont.low <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[4]
-    out$cont.high <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[5]
+    out$conf.low <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[4]
+    out$conf.high <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[5]
   }
   
   return(out)
