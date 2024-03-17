@@ -15,10 +15,8 @@ teffect_ra <- function(formula, data, treatment.effect = "ATE", bootstrap_se = F
   xf <- as.formula(paste0(D, " ~ ", paste0(X, collapse = " + ")))
   
   # Estimate IPW weights
-  if (ipw) {
-    pscore <- predict(glm(xf, data = dat, family = binomial(link = link)))
-    ipwts <- ifelse(dat[[D]] == 1, 1/pscore, 1/(1-pscore))
-  }
+  pscore <- predict(glm(xf, data = dat, family = binomial(link = link)), type = "response")
+  ipwts <- ifelse(dat[[D]] == 1, 1/pscore, 1/(1-pscore))
   
   # Fit model
   fit_ra <- function(df) {
@@ -58,15 +56,16 @@ teffect_ra <- function(formula, data, treatment.effect = "ATE", bootstrap_se = F
   
   # Bootstrap SEs
   if (bootstrap_se) {
+    
     bootstrap_statistic <- function(data, indices) {
       resampled_data <- data[indices, ]
-      return(fit_ra(resampled_data)) 
+      return(fit_ra(resampled_data))
     }
-    
+
     require(boot)
     set.seed(seed)
-    bootstrap <- boot::boot(data = dat, statistic = bootstrap_statistic, R = iter)
-    
+    bootstrap <- boot::boot(data = dat, statistic = bootstrap_statistic, R = iter, strata = dat[[D]])
+
     out$std.err <- as.numeric(summary(bootstrap)[4])
     out$conf.low <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[4]
     out$conf.high <- boot::boot.ci(bootstrap, type = "perc", conf = alpha)$percent[5]
